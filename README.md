@@ -37,7 +37,23 @@ memory inbox           # Pending compaction items
 memory consolidate     # LLM-powered session analysis
 memory forget <query>  # Remove entries
 memory index --rebuild # Rebuild FTS5 index
+memory sync push|pull  # Sync across devices
 ```
+
+### Multi-Device Sync
+
+Sync your memory data across machines via git:
+
+```bash
+memory sync init        # One-time: creates private themuuln/memento-data repo
+memory sync push        # Upload local memories to remote
+memory sync pull        # Download and merge remote memories
+memory sync status      # Check sync state
+```
+
+Uses a separate private GitHub repo (`themuuln/memento-data`) that stores only your `global/memories.md` and `graph/memory-graph.jsonl`. Each machine pushes/pulls independently — merge conflicts are resolved by keeping the latest version.
+
+Requires `gh` auth on each machine (`gh auth login`).
 
 ## Under the Hood
 
