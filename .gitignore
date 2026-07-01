@@ -1,0 +1,19 @@
+# Generated/lock files — not source code
+*.lock
+search/memory.db*
+__pycache__/
+*.pyc
+.egg-info/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+logs/*.log
+# Runtime data (per-installation)
+inbox/
+global/
+graph/
+archive/
+
+# Build artifacts
+*.egg-info/
+memento.egg-info/

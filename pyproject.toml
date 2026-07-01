@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memento"
+version = "1.0.0"
+description = "Local-first persistent memory system for AI coding agents"
+authors = [{ name = "themuuln" }]
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[project.scripts]
+memory = "memory_cli.__main__:main"
+
+[tool.setuptools]
+package-dir = { "" = "." }
+packages = ["memory_cli", "memory_cli.adapters", "memory_cli.commands", "memory_cli.core"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "storage": {
+    "root": "~/.agent-memory",
+    "global_memory": "global/memories.md",
+    "graph_file": "graph/memory-graph.jsonl",
+    "archive_dir": "archive/entries"
+  },
+  "tiers": {
+    "hot": { "max_entries": 20, "dir": "archive/entries/hot" },
+    "warm": { "max_entries": 200, "dir": "archive/entries/warm" },
+    "cold": { "max_entries": 2000, "dir": "archive/entries/cold" }
+  },
+  "capture": {
+    "triggers": [
+      "remember this:",
+      "note:",
+      "we decided:",
+      "important:",
+      "key insight:",
+      "lesson learned:",
+      "decision:",
+      "learning:",
+      "preference:"
+    ],
+    "patterns": {
+      "personal": "## ",
+      "project": "# "
+    },
+    "natural_language": {
+      "decision": ["we decided", "we chose", "we switched to", "we migrated", "we adopted"],
+      "learning": ["i learned", "i discovered", "i realized", "key takeaway"]
+    }
+  },
+  "dedup": {
+    "method": "jaccard",
+    "threshold": 0.55,
+    "schedule": "0 2 * * 0"
+  },
+  "mcp": {
+    "server": "@modelcontextprotocol/server-memory",
+    "graph_file": "graph/memory-graph.jsonl"
+  },
+  "llm": {
+    "model": "deepseek-v4-flash",
+    "api_url": "https://opencode.ai/zen/go/v1/chat/completions",
+    "api_key_env": "OPENCODE_GO_API_KEY"
+  }
+}

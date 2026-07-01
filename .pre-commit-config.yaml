@@ -1,0 +1,11 @@
+repos:
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        description: Run pytest on the agent-memory test suite
+        entry: python3 -m pytest tests/ -q
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]

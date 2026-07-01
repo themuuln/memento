@@ -1,0 +1,3 @@
+{"id":"mem-1","type":"memory","name":"test memory","content":"first valid entry","timestamp":"2026-07-01"}
+{"id":"mem-2","type":"memory","name":"second entry","content":"second entry content","timestamp":"2026-07-01"}{"id":"mem-3","type":"gotcha","name":"third entry","content":"this is on the same line as mem-2","timestamp":"2026-07-01"}
+{"id":"mem-4","type":"memory","name":"fourth entry","content":"valid again","timestamp":"2026-07-01"}
