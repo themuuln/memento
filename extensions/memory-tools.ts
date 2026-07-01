@@ -84,6 +84,33 @@ function formatResults(
 	return lines.join("\n");
 }
 
+// ── Dedup helper: skip near-identical entries ──
+// Computes word-level Jaccard similarity between two strings.
+function jaccardSimilarity(a: string, b: string): number {
+	const setA = new Set(a.toLowerCase().split(/\s+/).filter(Boolean));
+	const setB = new Set(b.toLowerCase().split(/\s+/).filter(Boolean));
+	if (setA.size === 0 && setB.size === 0) return 1;
+	const intersect = new Set([...setA].filter((w) => setB.has(w)));
+	const union = new Set([...setA, ...setB]);
+	return intersect.size / union.size;
+}
+
+// Filter results to skip entries too similar to already-selected ones.
+function dedupResults(
+	results: Array<Record<string, unknown>>,
+	threshold = 0.6,
+): Array<Record<string, unknown>> {
+	const deduped: Array<Record<string, unknown>> = [];
+	for (const r of results) {
+		const c = String(r.content || "");
+		const isDuplicate = deduped.some(
+			(existing) => jaccardSimilarity(c, String(existing.content || "")) >= threshold,
+		);
+		if (!isDuplicate) deduped.push(r);
+	}
+	return deduped;
+}
+
 // ── Cache ────────────────────────────────────────────────────────
 
 let lastRecallQuery: string | null = null;
@@ -477,8 +504,12 @@ export default function (pi: ExtensionAPI) {
 			const results = (result.results as Array<Record<string, unknown>>) || [];
 			if (results.length === 0) return;
 
+			// Dedup near-identical entries (e.g. same user profile from different sessions)
+			const deduped = dedupResults(results);
+			if (deduped.length === 0) return;
+
 			const parts: string[] = ["[Recalled from persistent memory]"];
-			for (const r of results.slice(0, 3)) {
+			for (const r of deduped.slice(0, 3)) {
 				const content = String(r.content || "").slice(0, 300);
 				parts.push(`• ${content}`);
 			}

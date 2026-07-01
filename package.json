@@ -1,0 +1,30 @@
+{
+  "name": "@themuuln/memento",
+  "version": "1.0.0",
+  "description": "Memento — local-first persistent memory system for AI coding agents",
+  "keywords": ["pi-package", "memory", "persistent-memory", "ai-agent", "pi-coding-agent"],
+  "license": "MIT",
+  "author": "themuuln",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themuuln/memento.git"
+  },
+  "homepage": "https://github.com/themuuln/memento",
+  "bugs": {
+    "url": "https://github.com/themuuln/memento/issues"
+  },
+  "pi": {
+    "extensions": ["./extensions"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "files": [
+    "extensions/",
+    "README.md",
+    "INSTALL.md",
+    "LICENSE"
+  ]
+}
