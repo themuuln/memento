@@ -111,6 +111,82 @@ function dedupResults(
 	return deduped;
 }
 
+/** Format sync result for tool output. */
+function formatSyncResult(result: Record<string, unknown>, action: string): string {
+	const lines: string[] = [`🧠 Sync ${action}:\n`];
+
+	if (result.status === "not_initialized" || result.status === "error") {
+		lines.push(`  ${result.error as string || "Sync not configured. Run: memory sync init"}`);
+		return lines.join("\n");
+	}
+
+	if (action === "status") {
+		const lastCommit = result.last_commit as Record<string, string> | undefined;
+		if (lastCommit) {
+			lines.push(`  Last synced: ${lastCommit.date}`);
+			lines.push(`  Message: ${lastCommit.message}`);
+		} else {
+			lines.push("  No sync history yet.");
+		}
+		if (result.ahead_of_remote != null) {
+			lines.push(`  Local ahead: ${result.ahead_of_remote as number} commit(s)`);
+		}
+		if (result.behind_remote != null) {
+			lines.push(`  Remote ahead: ${result.behind_remote as number} commit(s)`);
+		}
+		lines.push(`  Repo: ${result.repo as string}`);
+	} else if (action === "push") {
+		if (result.status === "up_to_date") {
+			lines.push("  Already up to date.");
+		} else {
+			const pushed = result.pushed as Array<string> | undefined;
+			if (pushed && pushed.length > 0) {
+				lines.push(`  Pushed: ${pushed.join(", ")}`);
+			}
+			if (result.conflicts_resolved != null) {
+				lines.push(`  Conflicts resolved: ${result.conflicts_resolved as number}`);
+			}
+		}
+	} else if (action === "pull") {
+		const restored = result.restored as Array<string> | undefined;
+		if (restored && restored.length > 0) {
+			lines.push(`  Restored: ${restored.join(", ")}`);
+		}
+		if (result.conflicts_resolved != null) {
+			lines.push(`  Conflicts resolved: ${result.conflicts_resolved as number}`);
+		}
+		if (result.index_rebuilt) {
+			lines.push("  FTS5 index rebuilt.");
+		}
+	} else if (action === "init") {
+		lines.push(`  Repo: ${result.repo as string}`);
+		lines.push(`  Data files copied: ${result.data_files_copied as number}`);
+		if (result.initial_push) {
+			lines.push("  Initial push complete.");
+		}
+	}
+
+	return lines.join("\n");
+}
+	return intersect.size / union.size;
+}
+
+// Filter results to skip entries too similar to already-selected ones.
+function dedupResults(
+	results: Array<Record<string, unknown>>,
+	threshold = 0.6,
+): Array<Record<string, unknown>> {
+	const deduped: Array<Record<string, unknown>> = [];
+	for (const r of results) {
+		const c = String(r.content || "");
+		const isDuplicate = deduped.some(
+			(existing) => jaccardSimilarity(c, String(existing.content || "")) >= threshold,
+		);
+		if (!isDuplicate) deduped.push(r);
+	}
+	return deduped;
+}
+
 // ── Cache ────────────────────────────────────────────────────────
 
 let lastRecallQuery: string | null = null;
@@ -267,6 +343,47 @@ export default function (pi: ExtensionAPI) {
 					total,
 					sections: Object.keys(bySection).length,
 				} as Record<string, unknown>,
+			};
+		},
+	});
+
+	// ── LLM Tool: memory_sync ──
+	pi.registerTool({
+		name: "memory_sync",
+		label: "Memory Sync",
+		description:
+			"Sync memories across devices via git. Push local changes to remote, " +
+			"pull remote changes, or check sync status.",
+		promptSnippet: "Sync persistent memory data across devices",
+		parameters: Type.Object({
+			action: StringEnum(["status", "push", "pull", "init"] as const, {
+				description:
+					"'status' to check sync state, 'push' to upload local memories, 'pull' to download remote memories, 'init' to set up sync for the first time",
+			}),
+			message: Type.Optional(
+				Type.String({
+					description: "Custom commit message for push action",
+				}),
+			),
+		}),
+
+		async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
+			const action = (params.action as string) || "status";
+			const message = params.message as string | undefined;
+
+			const args = ["sync", action];
+			if (message) args.push("--message", message);
+
+			const result = await cliAsync(args, undefined, 30000);
+
+			return {
+				content: [
+					{
+						type: "text",
+						text: formatSyncResult(result, action),
+					},
+				],
+				details: result as Record<string, unknown>,
 			};
 		},
 	});

@@ -120,6 +120,14 @@ def _build_parser() -> argparse.ArgumentParser:
     p_doctor.add_argument("--repair", action="store_true",
                           help="Attempt to repair fixable issues")
     
+    # sync
+    p_sync = sub.add_parser("sync", help="Sync memories across devices via git")
+    p_sync.add_argument("action", nargs="?", default="status",
+                        choices=["init", "push", "pull", "status"],
+                        help="Sync action")
+    p_sync.add_argument("--branch", help="Override sync branch")
+    p_sync.add_argument("--message", "-m", help="Commit message for push")
+    
     return parser
 
 
@@ -187,6 +195,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "doctor":
             result = doctor.run(config=config, repair=args.repair,
                                 verbose=args.verbose)
+        elif args.command == "sync":
+            from memory_cli.commands import sync
+            result = sync.run(config=config, adapters=adapter_names,
+                              action=args.action, branch=args.branch,
+                              message=args.message, verbose=args.verbose)
         else:
             parser.print_help()
             return 1
